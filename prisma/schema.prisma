@@ -54,39 +54,39 @@ model Medication {
 model PsychiatristInsurance {
   psychiatristId Int
   insuranceId    Int
-  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
-  Insurance      Insurance              @relation(fields: [insuranceId], references: [id])
+  Psychiatrist   Psychiatrist @relation(fields: [psychiatristId], references: [id], onDelete: Cascade)
+  Insurance      Insurance    @relation(fields: [insuranceId], references: [id])
   @@id([psychiatristId, insuranceId])
 }
 
 model PsychiatristLocation {
   psychiatristId Int
   locationId     Int
-  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
-  Location       Location               @relation(fields: [locationId], references: [id])
+  Psychiatrist   Psychiatrist @relation(fields: [psychiatristId], references: [id], onDelete: Cascade)
+  Location       Location     @relation(fields: [locationId], references: [id])
   @@id([psychiatristId, locationId])
 }
 
 model PsychiatristAgeGroup {
   psychiatristId Int
   ageGroupId     Int
-  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
-  AgeGroup       AgeGroup               @relation(fields: [ageGroupId], references: [id])
+  Psychiatrist   Psychiatrist @relation(fields: [psychiatristId], references: [id], onDelete: Cascade)
+  AgeGroup       AgeGroup     @relation(fields: [ageGroupId], references: [id])
   @@id([psychiatristId, ageGroupId])
 }
 
 model PsychiatristCondition {
   psychiatristId Int
   conditionId    Int
-  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
-  Condition      Condition              @relation(fields: [conditionId], references: [id])
+  Psychiatrist   Psychiatrist @relation(fields: [psychiatristId], references: [id], onDelete: Cascade)
+  Condition      Condition    @relation(fields: [conditionId], references: [id])
   @@id([psychiatristId, conditionId])
 }
 
 model PsychiatristMedication {
   psychiatristId Int
   medicationId   Int
-  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
-  Medication     Medication             @relation(fields: [medicationId], references: [id])
+  Psychiatrist   Psychiatrist @relation(fields: [psychiatristId], references: [id], onDelete: Cascade)
+  Medication     Medication   @relation(fields: [medicationId], references: [id])
   @@id([psychiatristId, medicationId])
 }

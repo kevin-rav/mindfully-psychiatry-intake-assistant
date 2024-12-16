@@ -76,6 +76,34 @@ export default function EditPsychiatrist() {
 
   const [notificationVisible, setNotificationVisible] = useState(false);
 
+  // State for managing insurance selection
+  const [selectedInsurances, setSelectedInsurances] = useState<number[]>(
+    psychiatrist?.insurances.map((i) => i.insuranceId) || []
+  );
+
+  // Handle Select All for Insurances
+  const handleSelectAllInsurances = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.checked) {
+      // Select all insurances
+      setSelectedInsurances(allInsurances.map((insurance) => insurance.id));
+    } else {
+      // Deselect all insurances
+      setSelectedInsurances([]);
+    }
+  };
+
+  // Handle individual checkbox changes
+  const handleInsuranceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const insuranceId = Number(e.target.value);
+    setSelectedInsurances((prev) =>
+      e.target.checked
+        ? [...prev, insuranceId]
+        : prev.filter((id) => id !== insuranceId)
+    );
+  };
+
   useEffect(() => {
     if (actionData?.success) {
       setNotificationVisible(true);
@@ -130,24 +158,55 @@ export default function EditPsychiatrist() {
             name="requiresInPersonFirstMeeting"
             id="requiresInPersonFirstMeeting"
             className="form-check-input"
-            defaultChecked={!psychiatrist?.requiresInPersonFirstMeeting}
+            defaultChecked={psychiatrist?.requiresInPersonFirstMeeting}
           />
           <label
             htmlFor="requiresInPersonFirstMeeting"
             className="form-check-label"
           >
-            Allow Telehealth for First Meeting
+            Requires first meeting to be in person
           </label>
         </div>
 
-        {/* Dynamic Sections for Relationships */}
+        {/* Dynamic Sections */}
+        <div className="mb-3">
+          <label className="form-label">Insurances</label>
+
+          {/* Select All Checkbox */}
+          <div className="form-check">
+            <input
+              type="checkbox"
+              id="selectAllInsurances"
+              className="form-check-input"
+              onChange={handleSelectAllInsurances}
+              checked={
+                selectedInsurances.length === allInsurances.length &&
+                allInsurances.length > 0
+              }
+            />
+            <label className="form-check-label" htmlFor="selectAllInsurances">
+              Select All
+            </label>
+          </div>
+
+          {/* Individual Checkboxes */}
+          {allInsurances.map((insurance) => (
+            <div key={insurance.id} className="form-check">
+              <input
+                type="checkbox"
+                name="insurances"
+                value={insurance.id}
+                className="form-check-input"
+                onChange={handleInsuranceChange}
+                checked={selectedInsurances.includes(insurance.id)}
+              />
+              <label className="form-check-label">{insurance.name}</label>
+            </div>
+          ))}
+        </div>
+
+        {/* Other Sections */}
         {[
-          {
-            label: "Insurances",
-            name: "insurances",
-            items: allInsurances,
-            current: psychiatrist?.insurances ?? [],
-          },
           {
             label: "Locations",
             name: "locations",
