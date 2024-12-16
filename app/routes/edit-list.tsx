@@ -2,6 +2,7 @@ import { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, Link, Outlet } from "@remix-run/react";
 import { prisma } from "~/utils/prisma.server";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // Define loader data type
 type LoaderData = {

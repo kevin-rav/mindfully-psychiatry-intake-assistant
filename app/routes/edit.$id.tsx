@@ -7,6 +7,7 @@ import {
   updatePsychiatrist,
 } from "~/services/psychiatrists";
 import { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 type LoaderData = {
   psychiatrist: Awaited<ReturnType<typeof getPsychiatristWithDetails>>;
