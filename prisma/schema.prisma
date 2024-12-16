@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Psychiatrist {
+  id                         Int                      @id @default(autoincrement())
+  firstName                  String
+  lastName                   String
+  credentials                String
+  numPatientsAccepted        Int
+  requiresInPersonFirstMeeting Boolean               @default(false)
+  insurances                 PsychiatristInsurance[]
+  locations                  PsychiatristLocation[]
+  ageGroups                  PsychiatristAgeGroup[]
+  conditionRestrictions      PsychiatristCondition[]
+  medicationRestrictions     PsychiatristMedication[]
+}
+
+model Insurance {
+  id           Int                      @id @default(autoincrement())
+  name         String
+  psychiatrists PsychiatristInsurance[]
+}
+
+model Location {
+  id           Int                      @id @default(autoincrement())
+  name         String
+  psychiatrists PsychiatristLocation[]
+}
+
+model AgeGroup {
+  id           Int                      @id @default(autoincrement())
+  name         String
+  psychiatrists PsychiatristAgeGroup[]
+}
+
+model Condition {
+  id           Int                      @id @default(autoincrement())
+  name         String
+  psychiatrists PsychiatristCondition[]
+}
+
+model Medication {
+  id           Int                      @id @default(autoincrement())
+  name         String
+  psychiatrists PsychiatristMedication[]
+}
+
+model PsychiatristInsurance {
+  psychiatristId Int
+  insuranceId    Int
+  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
+  Insurance      Insurance              @relation(fields: [insuranceId], references: [id])
+  @@id([psychiatristId, insuranceId])
+}
+
+model PsychiatristLocation {
+  psychiatristId Int
+  locationId     Int
+  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
+  Location       Location               @relation(fields: [locationId], references: [id])
+  @@id([psychiatristId, locationId])
+}
+
+model PsychiatristAgeGroup {
+  psychiatristId Int
+  ageGroupId     Int
+  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
+  AgeGroup       AgeGroup               @relation(fields: [ageGroupId], references: [id])
+  @@id([psychiatristId, ageGroupId])
+}
+
+model PsychiatristCondition {
+  psychiatristId Int
+  conditionId    Int
+  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
+  Condition      Condition              @relation(fields: [conditionId], references: [id])
+  @@id([psychiatristId, conditionId])
+}
+
+model PsychiatristMedication {
+  psychiatristId Int
+  medicationId   Int
+  Psychiatrist   Psychiatrist           @relation(fields: [psychiatristId], references: [id])
+  Medication     Medication             @relation(fields: [medicationId], references: [id])
+  @@id([psychiatristId, medicationId])
+}
