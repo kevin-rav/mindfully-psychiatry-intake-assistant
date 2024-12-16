@@ -161,13 +161,13 @@ export default function EditPsychiatrist() {
             current: psychiatrist?.ageGroups ?? [],
           },
           {
-            label: "Conditions",
+            label: "Condition Restrictions",
             name: "conditions",
             items: allConditions,
             current: psychiatrist?.conditionRestrictions ?? [],
           },
           {
-            label: "Medications",
+            label: "Medication Restrictions",
             name: "medications",
             items: allMedications,
             current: psychiatrist?.medicationRestrictions ?? [],
