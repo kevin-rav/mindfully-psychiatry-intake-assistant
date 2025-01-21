@@ -123,8 +123,14 @@ export async function getAllEntities() {
 export async function updatePsychiatrist(
   id: number,
   data: {
+    firstName: string;
+    lastName: string;
+    credentials: string;
     numPatientsAccepted: number;
     requiresInPersonFirstMeeting: boolean;
+    initialApptLength: number;
+    followUpApptLength: number;
+    notes: string;
     insurances: number[];
     locations: number[];
     ageGroups: number[];
@@ -135,8 +141,14 @@ export async function updatePsychiatrist(
   await prisma.psychiatrist.update({
     where: { id },
     data: {
+      firstName: data.firstName, 
+      lastName: data.lastName, 
+      credentials: data.credentials,
       numPatientsAccepted: data.numPatientsAccepted,
       requiresInPersonFirstMeeting: data.requiresInPersonFirstMeeting,
+      initialApptLength: data.initialApptLength, // Update initial appointment length
+      followUpApptLength: data.followUpApptLength, // Update follow-up appointment length
+      notes: data.notes, // Update notes
       // Update insurances
       insurances: {
         deleteMany: {}, // Remove all existing relationships
@@ -175,3 +187,125 @@ export async function updatePsychiatrist(
     },
   });
 }
+
+export async function createPsychiatrist(data: {
+  firstName: string;
+  lastName: string;
+  credentials: string;
+  numPatientsAccepted: number;
+  requiresInPersonFirstMeeting: boolean;
+  initialApptLength: number;
+  followUpApptLength: number;
+  notes: string;
+  insurances: number[];
+  locations: number[];
+  ageGroups: number[];
+  conditions: number[];
+  medications: number[];
+}) {
+  return prisma.psychiatrist.create({
+    data: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      credentials: data.credentials,
+      numPatientsAccepted: data.numPatientsAccepted,
+      requiresInPersonFirstMeeting: data.requiresInPersonFirstMeeting,
+      initialApptLength: data.initialApptLength,
+      followUpApptLength: data.followUpApptLength,
+      notes: data.notes,
+      insurances: {
+        create: data.insurances.map((insuranceId) => ({ insuranceId })),
+      },
+      locations: {
+        create: data.locations.map((locationId) => ({ locationId })),
+      },
+      ageGroups: {
+        create: data.ageGroups.map((ageGroupId) => ({ ageGroupId })),
+      },
+      conditionRestrictions: {
+        create: data.conditions.map((conditionId) => ({ conditionId })),
+      },
+      medicationRestrictions: {
+        create: data.medications.map((medicationId) => ({ medicationId })),
+      },
+    },
+  });
+}
+
+export async function deletePsychiatrist(id: number) {
+  await prisma.psychiatrist.delete({
+    where: { id },
+  });
+}
+
+// Add a new entity to a specified table
+export async function addEntity(type: string, name: string) {
+  switch (type) {
+    case "insurance":
+      return prisma.insurance.create({
+        data: { name },
+      });
+    case "location":
+      return prisma.location.create({
+        data: { name },
+      });
+    case "condition":
+      return prisma.condition.create({
+        data: { name },
+      });
+    case "medication":
+      return prisma.medication.create({
+        data: { name },
+      });
+    default:
+      throw new Error(`Unknown entity type: ${type}`);
+  }
+}
+
+// Delete an entity from a specified table
+export async function deleteEntity(type: string, id: number) {
+  switch (type) {
+    case "insurance":
+      return prisma.insurance.delete({
+        where: { id },
+      });
+    case "location":
+      return prisma.location.delete({
+        where: { id },
+      });
+    case "condition":
+      return prisma.condition.delete({
+        where: { id },
+      });
+    case "medication":
+      return prisma.medication.delete({
+        where: { id },
+      });
+    default:
+      throw new Error(`Unknown entity type: ${type}`);
+  }
+}
+
+// Fetch all psychiatrists with selected fields
+export async function getAllPsychiatrists() {
+  return prisma.psychiatrist.findMany({
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      credentials: true,
+      numPatientsAccepted: true,
+      requiresInPersonFirstMeeting: true,
+      initialApptLength: true,
+      followUpApptLength: true,
+      notes: true,
+      insurances: { select: { insuranceId: true } },
+      locations: { select: { locationId: true } },
+      ageGroups: { select: { ageGroupId: true } },
+      conditionRestrictions: { select: { conditionId: true } },
+      medicationRestrictions: { select: { medicationId: true } },
+    },
+    orderBy: { id: "asc" },
+  });
+}
+
