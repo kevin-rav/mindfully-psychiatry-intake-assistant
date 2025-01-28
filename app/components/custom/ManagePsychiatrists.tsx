@@ -1,26 +1,20 @@
-// ManagePsychiatrists Component
-// This component provides a user interface for managing the list of psychiatrists
-
 import { useState } from "react";
 import { Form } from "@remix-run/react";
 import PsychiatristForm from "~/components/custom/PsychiatristForm";
 import TableWithActions from "~/components/shared/TableWithActions";
 import { Psychiatrist, Entity } from "~/types";
 import FormHeader from "~/components/shared/FormHeader";
-
-// shadcn components
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 
-// Props for the EditList component
 type EditListProps = {
-  psychiatrists: Psychiatrist[]; // List of psychiatrists to display
-  allInsurances: Entity[]; // List of all insurances available
-  allLocations: Entity[]; // List of all locations available
-  allAgeGroups: Entity[]; // List of all age groups available
-  allConditions: Entity[]; // List of all conditions available
-  allMedications: Entity[]; // List of all medications available
-  onPsychiatristUpdated: () => void; // Callback triggered after updates
+  psychiatrists: Psychiatrist[];
+  allInsurances: Entity[];
+  allLocations: Entity[];
+  allAgeGroups: Entity[];
+  allConditions: Entity[];
+  allMedications: Entity[];
+  onPsychiatristUpdated: () => void;
 };
 
 export default function EditList({
@@ -32,40 +26,34 @@ export default function EditList({
   allMedications,
   onPsychiatristUpdated,
 }: EditListProps) {
-  // State to manage dialog visibility and selected psychiatrist
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Visibility state for Add/Edit dialog
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false); // Visibility state for Delete dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedPsychiatrist, setSelectedPsychiatrist] =
-    useState<Psychiatrist | null>(null); // Currently selected psychiatrist for editing or deleting
+    useState<Psychiatrist | null>(null);
 
-  // Handler for "Add Provider" button
   const handleAddClick = () => {
-    setSelectedPsychiatrist(null); // Null indicates add mode
-    setIsDialogOpen(true); // Open the Add/Edit dialog
+    setSelectedPsychiatrist(null);
+    setIsDialogOpen(true);
   };
 
-  // Handler for "Edit" button
   const handleEditClick = (psychiatrist: Psychiatrist) => {
-    setSelectedPsychiatrist(psychiatrist); // Set the psychiatrist to edit
-    setIsDialogOpen(true); // Open the Add/Edit dialog
+    setSelectedPsychiatrist(psychiatrist);
+    setIsDialogOpen(true);
   };
 
-  // Handler for "Delete" button
   const handleDeleteClick = (psychiatrist: Psychiatrist) => {
-    setSelectedPsychiatrist(psychiatrist); // Set the psychiatrist to delete
-    setIsDeleteOpen(true); // Open the Delete confirmation dialog
+    setSelectedPsychiatrist(psychiatrist);
+    setIsDeleteOpen(true);
   };
 
-  // Callback triggered on successful Add/Edit/Delete actions
   const handleSuccess = () => {
-    setIsDialogOpen(false); // Close Add/Edit dialog
-    setIsDeleteOpen(false); // Close Delete dialog
-    onPsychiatristUpdated(); // Notify parent component of updates
+    setIsDialogOpen(false);
+    setIsDeleteOpen(false);
+    onPsychiatristUpdated();
   };
 
   return (
     <div className="p-6">
-      {/* Header Section */}
       <FormHeader
         title="Manage Providers"
         description="Manage and edit the list of providers."
@@ -73,7 +61,6 @@ export default function EditList({
         onButtonClick={handleAddClick}
       />
 
-      {/* Table of Psychiatrists */}
       <TableWithActions
         data={psychiatrists}
         columns={[
@@ -84,24 +71,22 @@ export default function EditList({
         onDelete={handleDeleteClick}
       />
 
-      {/* Add/Edit Psychiatrist Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-5xl w-full h-5/6 bg-gray-50 overflow-hidden">
           <div className="overflow-y-auto p-6">
             <PsychiatristForm
-              psychiatrist={selectedPsychiatrist || undefined} // Null indicates Add mode
+              psychiatrist={selectedPsychiatrist || undefined}
               allInsurances={allInsurances}
               allLocations={allLocations}
               allAgeGroups={allAgeGroups}
               allConditions={allConditions}
               allMedications={allMedications}
-              onSuccess={handleSuccess} // Callback on successful submission
+              onSuccess={handleSuccess}
             />
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Psychiatrist Confirmation Dialog */}
       {selectedPsychiatrist && (
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
           <DialogContent className="max-w-md">
@@ -115,14 +100,13 @@ export default function EditList({
                 cannot be undone.
               </p>
               <div className="flex justify-end space-x-4">
-                {/* Cancel button for deletion dialog */}
                 <Button
                   variant="outline"
                   onClick={() => setIsDeleteOpen(false)}
                 >
                   Cancel
                 </Button>
-                {/* Form for confirming deletion */}
+
                 <Form method="post">
                   <input
                     type="hidden"

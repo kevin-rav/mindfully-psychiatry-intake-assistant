@@ -1,28 +1,22 @@
-// FilterForm Component
-// This component renders a form allowing users to filter psychiatrists based on various criteria.
-
 import React from "react";
 import { Form } from "@remix-run/react";
 import { Entity } from "~/types";
 import FormHeader from "~/components/shared/FormHeader";
 import SelectField from "~/components/shared/SelectField";
-
-// shadcn components
 import { MultiSelect } from "~/components/ui/multi-select";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
 
-// Props for the FilterForm component
 interface FilterFormProps {
-  insurances: Entity[]; // List of insurance options for filtering
-  locations: Entity[]; // List of location options for filtering
-  ageGroups: Entity[]; // List of age groups for filtering
-  medications: Entity[]; // List of medications for filtering by restrictions
-  conditions: Entity[]; // List of conditions for filtering by restrictions
-  medicationIds: number[]; // Selected medication IDs
-  setMedicationIds: React.Dispatch<React.SetStateAction<number[]>>; // Setter for medication IDs
-  conditionIds: number[]; // Selected condition IDs
-  setConditionIds: React.Dispatch<React.SetStateAction<number[]>>; // Setter for condition IDs
+  insurances: Entity[];
+  locations: Entity[];
+  ageGroups: Entity[];
+  medications: Entity[];
+  conditions: Entity[];
+  medicationIds: number[];
+  setMedicationIds: React.Dispatch<React.SetStateAction<number[]>>;
+  conditionIds: number[];
+  setConditionIds: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
 export default function FilterForm({
@@ -44,7 +38,6 @@ export default function FilterForm({
       />
 
       <Form method="post" className="space-y-4">
-        {/* Insurance Select Field */}
         <SelectField
           label="Select an Insurance Plan"
           name="insuranceId"
@@ -52,7 +45,13 @@ export default function FilterForm({
           placeholder="Select an insurance plan"
         />
 
-        {/* Location Select Field */}
+        <SelectField
+          label="Select a Secondary Insurance Plan"
+          name="insuranceId2"
+          options={insurances}
+          placeholder="Select a secondary insurance plan (optional)"
+        />
+
         <SelectField
           label="Select a Location"
           name="locationId"
@@ -60,7 +59,6 @@ export default function FilterForm({
           placeholder="Select a location"
         />
 
-        {/* Age Group Select Field */}
         <SelectField
           label="Select an Age Group"
           name="ageGroupId"
@@ -68,7 +66,6 @@ export default function FilterForm({
           placeholder="Select an age group"
         />
 
-        {/* Medication Multi-Select */}
         <MultiSelect
           label="Medication Restrictions"
           options={medications}
@@ -76,7 +73,6 @@ export default function FilterForm({
           onChange={setMedicationIds}
         />
 
-        {/* Condition Multi-Select */}
         <MultiSelect
           label="Condition Restrictions"
           options={conditions}
@@ -84,7 +80,6 @@ export default function FilterForm({
           onChange={setConditionIds}
         />
 
-        {/* Telehealth Preference Checkbox */}
         <div className="flex items-center gap-2">
           <Checkbox id="preferTelehealth" name="preferTelehealth" />
           <label htmlFor="preferTelehealth" className="text-sm">
@@ -92,7 +87,6 @@ export default function FilterForm({
           </label>
         </div>
 
-        {/* Submit Button */}
         <Button type="submit" className="w-full">
           Search
         </Button>

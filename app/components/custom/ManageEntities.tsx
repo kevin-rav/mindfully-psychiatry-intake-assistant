@@ -79,7 +79,6 @@ export default function ManageEntities({
         onButtonClick={handleAdd}
       />
 
-      {/* Tabs Section */}
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as EntityType)}
@@ -120,7 +119,6 @@ export default function ManageEntities({
         </TabsContent>
       </Tabs>
 
-      {/* Dialog Section */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>

@@ -1,25 +1,18 @@
-// ResultsList Component
-// This component displays a list of psychiatrists based on the user's filters.
-// It includes a popover for viewing detailed information about each psychiatrist.
-
 import React from "react";
 import { Psychiatrist } from "~/types";
 import FormHeader from "~/components/shared/FormHeader";
-
-// shadcn components
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "~/components/ui/popover";
 
-// Props for the ResultsList component
 interface ResultsListProps {
-  psychiatrists?: Psychiatrist[]; // Optional list of psychiatrists to display as search results
-  selectedPsychiatrist: Psychiatrist | null; // The psychiatrist currently selected for detailed view
+  psychiatrists?: Psychiatrist[];
+  selectedPsychiatrist: Psychiatrist | null;
   setSelectedPsychiatrist: React.Dispatch<
     React.SetStateAction<Psychiatrist | null>
-  >; // Setter function to update the selected psychiatrist
+  >;
 }
 
 export default function ResultsList({
@@ -34,12 +27,10 @@ export default function ResultsList({
         description="Results based on your search criteria."
       />
 
-      {/* Header Section */}
       {psychiatrists?.length ? (
         <ul className="space-y-4">
           {psychiatrists.map((psychiatrist) => (
             <li key={psychiatrist.id} className="border p-3 rounded-md">
-              {/* Popover for Psychiatrist Details */}
               <Popover>
                 <PopoverTrigger
                   asChild
@@ -64,7 +55,6 @@ export default function ResultsList({
   );
 }
 
-// Display detailed information about a selected psychiatrist
 function PsychiatristDetails({
   psychiatrist,
 }: {

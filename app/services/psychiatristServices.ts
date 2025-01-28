@@ -1,44 +1,34 @@
 import { prisma } from "~/utils/prisma.server";
 
-// Fetch all insurance options
-export async function getInsuranceOptions() {
-  return prisma.insurance.findMany();
-}
-
-// Fetch all location options
-export async function getLocationOptions() {
-  return prisma.location.findMany();
-}
-
-// Fetch all age group options
-export async function getAgeGroupOptions() {
-  return prisma.ageGroup.findMany();
-}
-
-// Fetch all medication options
-export async function getMedicationOptions() {
-  return prisma.medication.findMany();
-}
-
-// Fetch all condition options
-export async function getConditionOptions() {
-  return prisma.condition.findMany();
-}
-
-// Search psychiatrists based on provided filters
 export async function searchPsychiatrists(filters: {
   insuranceId?: number;
+  insuranceId2?: number;
   locationId?: number;
   ageGroupId?: number;
   medicationIds?: number[];
   conditionIds?: number[];
   preferTelehealth?: boolean;
 }) {
-  const { insuranceId, locationId, ageGroupId, medicationIds, conditionIds, preferTelehealth } = filters;
+  const {
+    insuranceId,
+    insuranceId2,
+    locationId,
+    ageGroupId,
+    medicationIds,
+    conditionIds,
+    preferTelehealth,
+  } = filters;
 
-  return prisma.psychiatrist.findMany({
+  const results = await prisma.psychiatrist.findMany({
     where: {
-      ...(insuranceId && { insurances: { some: { insuranceId } } }),
+      ...(insuranceId || insuranceId2
+        ? {
+            AND: [
+              ...(insuranceId ? [{ insurances: { some: { insuranceId } } }] : []),
+              ...(insuranceId2 ? [{ insurances: { some: { insuranceId: insuranceId2 } } }] : []),
+            ],
+          }
+        : {}),
       ...(locationId && { locations: { some: { locationId } } }),
       ...(ageGroupId && { ageGroups: { some: { ageGroupId } } }),
       ...(medicationIds &&
@@ -49,12 +39,7 @@ export async function searchPsychiatrists(filters: {
         conditionIds.length > 0 && {
           conditionRestrictions: { none: { conditionId: { in: conditionIds } } },
         }),
-      // Filter by telehealth preference if specified
-      ...(preferTelehealth
-        ? { requiresInPersonFirstMeeting: false } // Show only psychiatrists who allow telehealth
-        : {}), // If not checked, include all psychiatrists
-
-      // Only include psychiatrists accepting new patients
+      ...(preferTelehealth ? { requiresInPersonFirstMeeting: false } : {}),
       numPatientsAccepted: { gt: 0 },
     },
     include: {
@@ -65,9 +50,10 @@ export async function searchPsychiatrists(filters: {
       conditionRestrictions: true,
     },
   });
+
+  return results;
 }
 
-// Fetch psychiatrist details with relationships
 export async function getPsychiatristWithDetails(id: number) {
   return prisma.psychiatrist.findUnique({
     where: { id },
@@ -101,25 +87,6 @@ export async function getPsychiatristWithDetails(id: number) {
   });
 }
 
-// Fetch all related entities
-export async function getAllEntities() {
-  const [allInsurances, allLocations, allAgeGroups, allConditions, allMedications] = await Promise.all([
-    prisma.insurance.findMany({ select: { id: true, name: true } }),
-    prisma.location.findMany({ select: { id: true, name: true } }),
-    prisma.ageGroup.findMany({ select: { id: true, name: true } }),
-    prisma.condition.findMany({ select: { id: true, name: true } }),
-    prisma.medication.findMany({ select: { id: true, name: true } }),
-  ]);
-
-  return {
-    allInsurances,
-    allLocations,
-    allAgeGroups,
-    allConditions,
-    allMedications,
-  };
-}
-
 export async function updatePsychiatrist(
   id: number,
   data: {
@@ -141,48 +108,43 @@ export async function updatePsychiatrist(
   await prisma.psychiatrist.update({
     where: { id },
     data: {
-      firstName: data.firstName, 
-      lastName: data.lastName, 
+      firstName: data.firstName,
+      lastName: data.lastName,
       credentials: data.credentials,
       numPatientsAccepted: data.numPatientsAccepted,
       requiresInPersonFirstMeeting: data.requiresInPersonFirstMeeting,
-      initialApptLength: data.initialApptLength, // Update initial appointment length
-      followUpApptLength: data.followUpApptLength, // Update follow-up appointment length
-      notes: data.notes, // Update notes
-      // Update insurances
+      initialApptLength: data.initialApptLength,
+      followUpApptLength: data.followUpApptLength,
+      notes: data.notes,
       insurances: {
-        deleteMany: {}, // Remove all existing relationships
+        deleteMany: {},
         create: data.insurances.map((insuranceId) => ({
           insuranceId,
-        })), // Create new relationships
+        })),
       },
-      // Update locations
       locations: {
-        deleteMany: {}, // Remove all existing relationships
+        deleteMany: {},
         create: data.locations.map((locationId) => ({
           locationId,
-        })), // Create new relationships
+        })),
       },
-      // Update age groups
       ageGroups: {
-        deleteMany: {}, // Remove all existing relationships
+        deleteMany: {},
         create: data.ageGroups.map((ageGroupId) => ({
           ageGroupId,
-        })), // Create new relationships
+        })),
       },
-      // Update condition restrictions
       conditionRestrictions: {
-        deleteMany: {}, // Remove all existing relationships
+        deleteMany: {},
         create: data.conditions.map((conditionId) => ({
           conditionId,
-        })), // Create new relationships
+        })),
       },
-      // Update medication restrictions
       medicationRestrictions: {
-        deleteMany: {}, // Remove all existing relationships
+        deleteMany: {},
         create: data.medications.map((medicationId) => ({
           medicationId,
-        })), // Create new relationships
+        })),
       },
     },
   });
@@ -238,55 +200,6 @@ export async function deletePsychiatrist(id: number) {
   });
 }
 
-// Add a new entity to a specified table
-export async function addEntity(type: string, name: string) {
-  switch (type) {
-    case "insurance":
-      return prisma.insurance.create({
-        data: { name },
-      });
-    case "location":
-      return prisma.location.create({
-        data: { name },
-      });
-    case "condition":
-      return prisma.condition.create({
-        data: { name },
-      });
-    case "medication":
-      return prisma.medication.create({
-        data: { name },
-      });
-    default:
-      throw new Error(`Unknown entity type: ${type}`);
-  }
-}
-
-// Delete an entity from a specified table
-export async function deleteEntity(type: string, id: number) {
-  switch (type) {
-    case "insurance":
-      return prisma.insurance.delete({
-        where: { id },
-      });
-    case "location":
-      return prisma.location.delete({
-        where: { id },
-      });
-    case "condition":
-      return prisma.condition.delete({
-        where: { id },
-      });
-    case "medication":
-      return prisma.medication.delete({
-        where: { id },
-      });
-    default:
-      throw new Error(`Unknown entity type: ${type}`);
-  }
-}
-
-// Fetch all psychiatrists with selected fields
 export async function getAllPsychiatrists() {
   return prisma.psychiatrist.findMany({
     select: {
@@ -308,4 +221,3 @@ export async function getAllPsychiatrists() {
     orderBy: { id: "asc" },
   });
 }
-

@@ -1,12 +1,6 @@
-// Admin Portal Component
-// This file serves as the admin page for managing psychiatrists and associated entities.
-// It includes functionality for fetching, creating, updating, and deleting data.
-
 import { redirect } from "@remix-run/node";
 import { Form, useSearchParams } from "@remix-run/react";
 import { getSession, commitSession } from "~/utils/sessions";
-
-// shadcn components
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardHeader, CardContent } from "~/components/ui/card";

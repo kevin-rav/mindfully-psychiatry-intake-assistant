@@ -1,13 +1,10 @@
-// FormHeader Component
-
-import React from "react";
 import { Button } from "~/components/ui/button";
 
 interface FormHeaderProps {
   title: string;
   description: string;
-  buttonText?: string; // Optional button text
-  onButtonClick?: () => void; // Optional button click handler
+  buttonText?: string;
+  onButtonClick?: () => void;
 }
 
 export default function FormHeader({

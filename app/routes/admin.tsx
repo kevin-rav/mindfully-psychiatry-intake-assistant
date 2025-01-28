@@ -1,7 +1,3 @@
-// Admin Portal Component
-// This file serves as the admin page for managing psychiatrists and associated entities.
-// It includes functionality for fetching, creating, updating, and deleting data.
-
 import { redirect, json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import ManagePsychiatrists from "~/components/custom/ManagePsychiatrists";
@@ -12,14 +8,14 @@ import {
   updatePsychiatrist,
   createPsychiatrist,
   deletePsychiatrist,
+  getAllPsychiatrists,
+} from "~/services/psychiatristServices";
+import {
   addEntity,
   deleteEntity,
-  getAllPsychiatrists,
   getAllEntities,
-} from "~/services/psychiatrists";
+} from "~/services/entityServices";
 import ManageEntities from "~/components/custom/ManageEntities";
-
-// shadcn components
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 
@@ -32,30 +28,25 @@ type LoaderData = {
   allMedications: Entity[];
 };
 
-// Loader function to authenticate and fetch initial data
 export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
   const isAuthenticated = session.get("adminAuthenticated");
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return redirect("/password?redirectTo=/admin");
   }
 
-  // Fetch psychiatrists and associated entities in parallel
   const [psychiatrists, entities] = await Promise.all([
     getAllPsychiatrists(),
     getAllEntities(),
   ]);
 
-  // Return data in JSON format for the component to consume
   return json({
     psychiatrists,
     ...entities,
   });
 };
 
-// Helper function to process entity creation
 async function processEntityAction(formData: FormData) {
   const name = formData.get("newEntityName") as string;
   const type = formData.get("entityType") as string;
@@ -67,7 +58,6 @@ async function processEntityAction(formData: FormData) {
   await addEntity(type, name);
 }
 
-// Helper function to process entity deletion
 async function processEntityDeletion(formData: FormData) {
   const id = Number(formData.get("deleteEntityId"));
   const type = formData.get("entityType") as string;
@@ -79,7 +69,6 @@ async function processEntityDeletion(formData: FormData) {
   await deleteEntity(type, id);
 }
 
-// Helper function to process psychiatrist deletion
 async function processPsychiatristDeletion(formData: FormData) {
   const psychiatristId = Number(formData.get("deletePsychiatristId"));
 
@@ -90,7 +79,6 @@ async function processPsychiatristDeletion(formData: FormData) {
   await deletePsychiatrist(psychiatristId);
 }
 
-// Helper function to create or update psychiatrist data
 async function processPsychiatristUpsert(
   formData: FormData,
   isAddingNew: boolean
@@ -122,24 +110,20 @@ async function processPsychiatristUpsert(
   }
 }
 
-// Action function to handle form submissions and data modifications
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
   try {
-    // Handle entity creation
     if (formData.has("newEntityName") && formData.has("entityType")) {
       await processEntityAction(formData);
       return json({ success: true, message: "Entity added successfully." });
     }
 
-    // Handle entity deletion
     if (formData.has("deleteEntityId") && formData.has("entityType")) {
       await processEntityDeletion(formData);
       return json({ success: true, message: "Entity deleted successfully." });
     }
 
-    // Handle psychiatrist deletion
     if (formData.has("deletePsychiatristId")) {
       await processPsychiatristDeletion(formData);
       return json({
@@ -148,7 +132,6 @@ export const action: ActionFunction = async ({ request }) => {
       });
     }
 
-    // Handle psychiatrist creation or update
     const isAddingNew = formData.get("isAddingNew") === "true";
     if (
       formData.has("firstName") ||
@@ -178,9 +161,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-// Main admin page component
 export default function AdminLayout() {
-  // Load data from loader function
   const {
     psychiatrists,
     allInsurances,
@@ -190,7 +171,6 @@ export default function AdminLayout() {
     allMedications,
   } = useLoaderData<LoaderData>();
 
-  // Callback to handle psychiatrist updates
   const onPsychiatristUpdated = () => {
     console.log("Psychiatrist updated!");
   };
@@ -204,7 +184,6 @@ export default function AdminLayout() {
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Manage Psychiatrists Section */}
         <Card className="flex-1">
           <CardContent>
             <ManagePsychiatrists
@@ -219,7 +198,6 @@ export default function AdminLayout() {
           </CardContent>
         </Card>
 
-        {/* Manage Entities Section */}
         <Card className="flex-1">
           <CardContent>
             <ManageEntities

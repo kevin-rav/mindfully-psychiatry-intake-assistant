@@ -1,11 +1,6 @@
-// PsychiatristForm Component
-// This component provides a form for adding or editing psychiatrist information.
-
 import { Form, useSubmit } from "@remix-run/react";
 import { useState } from "react";
 import { Psychiatrist, Entity } from "~/types";
-
-// shadcn components
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -14,15 +9,14 @@ import CheckboxGroup from "~/components/ui/checkbox-group";
 import { Textarea } from "~/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 
-// Props for the form, including the optional psychiatrist for editing mode
 type PsychiatristFormProps = {
-  psychiatrist?: Psychiatrist; // If provided, the form is in "edit" mode
-  allInsurances: Entity[]; // List of all available insurances
-  allLocations: Entity[]; // List of all available locations
-  allAgeGroups: Entity[]; // List of all available age groups
-  allConditions: Entity[]; // List of all available conditions
-  allMedications: Entity[]; // List of all available medications
-  onSuccess: () => void; // Callback function after successful form submission
+  psychiatrist?: Psychiatrist;
+  allInsurances: Entity[];
+  allLocations: Entity[];
+  allAgeGroups: Entity[];
+  allConditions: Entity[];
+  allMedications: Entity[];
+  onSuccess: () => void;
 };
 
 export default function PsychiatristForm({
@@ -36,10 +30,8 @@ export default function PsychiatristForm({
 }: PsychiatristFormProps) {
   const submit = useSubmit();
 
-  // Determine whether this is an edit or add operation
   const isEditing = Boolean(psychiatrist);
 
-  // State for form fields
   const [firstName, setFirstName] = useState(psychiatrist?.firstName || "");
   const [lastName, setLastName] = useState(psychiatrist?.lastName || "");
   const [credentials, setCredentials] = useState(
@@ -74,11 +66,9 @@ export default function PsychiatristForm({
     psychiatrist?.medicationRestrictions.map((m) => m.medicationId) || []
   );
 
-  // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Collect form data for submission
     const formData = new FormData(event.currentTarget);
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
@@ -97,14 +87,12 @@ export default function PsychiatristForm({
     formData.append("conditions", JSON.stringify(selectedConditions));
     formData.append("medications", JSON.stringify(selectedMedications));
 
-    // Add specific fields for editing or adding a new psychiatrist
     if (isEditing) {
       formData.append("psychiatristId", String(psychiatrist?.id));
     } else {
       formData.append("isAddingNew", "true");
     }
 
-    // Submit the form data
     submit(formData, { method: "post" });
     onSuccess();
   };
@@ -117,7 +105,6 @@ export default function PsychiatristForm({
           : "Add New Provider"}
       </h2>
 
-      {/* First Name */}
       <div className="space-y-2">
         <Label htmlFor="firstName">First Name</Label>
         <Input
@@ -130,7 +117,6 @@ export default function PsychiatristForm({
         />
       </div>
 
-      {/* Last Name */}
       <div className="space-y-2">
         <Label htmlFor="lastName">Last Name</Label>
         <Input
@@ -143,14 +129,13 @@ export default function PsychiatristForm({
         />
       </div>
 
-      {/* Credentials */}
       <div className="space-y-2">
         <Label>Credentials</Label>
         <RadioGroup
           name="credentials"
           value={credentials}
           onValueChange={(value) => {
-            setCredentials(value); // Update state
+            setCredentials(value);
           }}
           className="flex space-x-4"
         >
@@ -163,7 +148,6 @@ export default function PsychiatristForm({
         </RadioGroup>
       </div>
 
-      {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
         <Textarea
@@ -174,7 +158,6 @@ export default function PsychiatristForm({
         />
       </div>
 
-      {/* Appointment Lengths */}
       <div className="space-y-2">
         <Label>Initial Appointment Length (minutes)</Label>
         <RadioGroup
@@ -192,7 +175,6 @@ export default function PsychiatristForm({
         </RadioGroup>
       </div>
 
-      {/* Follow-Up Appointment Length */}
       <div className="space-y-2">
         <Label>Follow-Up Appointment Length (minutes)</Label>
         <RadioGroup
@@ -213,7 +195,6 @@ export default function PsychiatristForm({
         </RadioGroup>
       </div>
 
-      {/* Number of Patients */}
       <div className="space-y-2">
         <Label htmlFor="numPatientsAccepted">Number of Patients Accepted</Label>
         <Input
@@ -229,7 +210,6 @@ export default function PsychiatristForm({
         />
       </div>
 
-      {/* Telehealth Checkbox */}
       <div className="flex items-center gap-2">
         <Checkbox
           id="requiresInPersonFirstMeeting"
@@ -244,9 +224,7 @@ export default function PsychiatristForm({
         </Label>
       </div>
 
-      {/* Multi-Select Fields */}
       <div className="flex flex-wrap gap-6">
-        {/* Left Column: Insurances */}
         <div className="flex-1 min-w-[300px]">
           <CheckboxGroup
             label="Insurances"
@@ -256,7 +234,6 @@ export default function PsychiatristForm({
           />
         </div>
 
-        {/* Right Column: Other Fields */}
         <div className="flex-1 min-w-[300px] space-y-4">
           <CheckboxGroup
             label="Locations"
@@ -285,7 +262,6 @@ export default function PsychiatristForm({
         </div>
       </div>
 
-      {/* Submit Button */}
       <Button type="submit">
         {isEditing ? "Save Changes" : "Add Provider"}
       </Button>

@@ -1,7 +1,3 @@
-// Index Page Component
-// This file serves as the main page for the psychiatry intake assistant.
-// It includes a filter form for user inputs and a results list displaying available psychiatrists.
-
 import { useState } from "react";
 import { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -9,20 +5,17 @@ import { useLoaderData, useActionData, Link } from "@remix-run/react";
 import FilterForm from "~/components/custom/FilterForm";
 import ResultsList from "~/components/custom/ResultsList";
 import { Psychiatrist, Entity } from "~/types";
+import { searchPsychiatrists } from "~/services/psychiatristServices";
 import {
   getInsuranceOptions,
   getLocationOptions,
   getAgeGroupOptions,
   getMedicationOptions,
   getConditionOptions,
-  searchPsychiatrists,
-} from "~/services/psychiatrists";
-
-// shadcn components
+} from "~/services/entityServices";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 
-// Fetch initial data for the form
 export const loader: LoaderFunction = async () => {
   const insurances = await getInsuranceOptions();
   const locations = await getLocationOptions();
@@ -33,14 +26,15 @@ export const loader: LoaderFunction = async () => {
   return json({ insurances, locations, ageGroups, medications, conditions });
 };
 
-// Handle form submission and return filtered psychiatrist data
 export const action: ActionFunction = async ({ request }) => {
   const formData = new URLSearchParams(await request.text());
 
-  // Extract filter values from form data
   const filters = {
     insuranceId: formData.get("insuranceId")
       ? Number(formData.get("insuranceId"))
+      : undefined,
+    insuranceId2: formData.get("insuranceId2")
+      ? Number(formData.get("insuranceId2"))
       : undefined,
     locationId: formData.get("locationId")
       ? Number(formData.get("locationId"))
@@ -53,14 +47,11 @@ export const action: ActionFunction = async ({ request }) => {
     preferTelehealth: formData.has("preferTelehealth"),
   };
 
-  // Fetch psychiatrists based on the filters and sort by ID
   const psychiatrists = await searchPsychiatrists(filters);
   return json({ psychiatrists: psychiatrists.sort((a, b) => a.id - b.id) });
 };
 
-// Main page component
 export default function Index() {
-  // Load initial data and action data
   const { insurances, locations, ageGroups, medications, conditions } =
     useLoaderData<{
       insurances: Entity[];
@@ -71,7 +62,6 @@ export default function Index() {
     }>();
   const data = useActionData<{ psychiatrists: Psychiatrist[] }>();
 
-  // State to manage selected filters
   const [medicationIds, setMedicationIds] = useState<number[]>([]);
   const [conditionIds, setConditionIds] = useState<number[]>([]);
   const [selectedPsychiatrist, setSelectedPsychiatrist] =
@@ -88,9 +78,6 @@ export default function Index() {
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row gap-6"></div>
-      {/* Filter Form Section */}
-
-      {/* Results List Section */}
 
       <div className="flex flex-col lg:flex-row gap-6">
         <Card className="flex-1">
