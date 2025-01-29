@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    depends_on: []
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "npx prisma migrate deploy && npm start"]
