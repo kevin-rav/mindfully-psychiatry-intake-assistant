@@ -7,7 +7,7 @@ import FormHeader from "~/components/shared/FormHeader";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 
-type EditListProps = {
+type ManagePsychiatristsProps = {
   psychiatrists: Psychiatrist[];
   allInsurances: Entity[];
   allLocations: Entity[];
@@ -17,7 +17,7 @@ type EditListProps = {
   onPsychiatristUpdated: () => void;
 };
 
-export default function EditList({
+export default function ManagePsychiatrists({
   psychiatrists,
   allInsurances,
   allLocations,
@@ -25,7 +25,7 @@ export default function EditList({
   allConditions,
   allMedications,
   onPsychiatristUpdated,
-}: EditListProps) {
+}: ManagePsychiatristsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedPsychiatrist, setSelectedPsychiatrist] =

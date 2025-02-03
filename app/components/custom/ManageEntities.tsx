@@ -20,6 +20,7 @@ interface ManageEntitiesProps {
   locations: Entity[];
   conditions: Entity[];
   medications: Entity[];
+  onEntitiesUpdated: () => void;
 }
 
 export default function ManageEntities({
@@ -27,6 +28,7 @@ export default function ManageEntities({
   locations,
   conditions,
   medications,
+  onEntitiesUpdated,
 }: ManageEntitiesProps) {
   const [entities, setEntities] = useState({
     insurance: insurances,
@@ -34,40 +36,34 @@ export default function ManageEntities({
     condition: conditions,
     medication: medications,
   });
+
   const [activeTab, setActiveTab] = useState<EntityType>("insurance");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"add" | "delete">("add");
-  const [entityInput, setEntityInput] = useState("");
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [entityInput, setEntityInput] = useState("");
 
-  const handleAdd = () => {
-    setDialogType("add");
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = (entity: Entity) => {
-    setSelectedEntity(entity);
-    setDialogType("delete");
-    setIsDialogOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (dialogType === "add") {
-      const newEntity = { id: Date.now(), name: entityInput };
-      setEntities((prev) => ({
-        ...prev,
-        [activeTab]: [...prev[activeTab], newEntity],
-      }));
-    } else if (dialogType === "delete" && selectedEntity) {
-      setEntities((prev) => ({
-        ...prev,
-        [activeTab]: prev[activeTab].filter((e) => e.id !== selectedEntity.id),
-      }));
-    }
-    setIsDialogOpen(false);
-    setEntityInput("");
+  const handleAddClick = () => {
     setSelectedEntity(null);
+    setEntityInput("");
+    setIsDialogOpen(true);
+  };
+
+  const handleEditClick = (entity: Entity) => {
+    setSelectedEntity(entity);
+    setEntityInput(entity.name);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteClick = (entity: Entity) => {
+    setSelectedEntity(entity);
+    setIsDeleteOpen(true);
+  };
+
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    setIsDeleteOpen(false);
+    onEntitiesUpdated();
   };
 
   return (
@@ -76,7 +72,7 @@ export default function ManageEntities({
         title="Manage Entities"
         description="Manage and edit the list of filtering criteria."
         buttonText={`Add ${activeTab}`}
-        onButtonClick={handleAdd}
+        onButtonClick={handleAddClick}
       />
 
       <Tabs
@@ -89,32 +85,13 @@ export default function ManageEntities({
           <TabsTrigger value="condition">Conditions</TabsTrigger>
           <TabsTrigger value="medication">Medications</TabsTrigger>
         </TabsList>
-        <TabsContent value="insurance">
+
+        <TabsContent value={activeTab}>
           <TableWithActions
-            data={entities.insurance}
+            data={entities[activeTab]}
             columns={[{ label: "Name", accessor: "name" }]}
-            onDelete={handleDelete}
-          />
-        </TabsContent>
-        <TabsContent value="location">
-          <TableWithActions
-            data={entities.location}
-            columns={[{ label: "Name", accessor: "name" }]}
-            onDelete={handleDelete}
-          />
-        </TabsContent>
-        <TabsContent value="condition">
-          <TableWithActions
-            data={entities.condition}
-            columns={[{ label: "Name", accessor: "name" }]}
-            onDelete={handleDelete}
-          />
-        </TabsContent>
-        <TabsContent value="medication">
-          <TableWithActions
-            data={entities.medication}
-            columns={[{ label: "Name", accessor: "name" }]}
-            onDelete={handleDelete}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
           />
         </TabsContent>
       </Tabs>
@@ -123,36 +100,72 @@ export default function ManageEntities({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialogType === "add"
-                ? `Add New ${activeTab}`
-                : `Delete ${selectedEntity?.name}`}
+              {selectedEntity
+                ? `Edit ${selectedEntity.name}`
+                : `Add New ${activeTab}`}
             </DialogTitle>
           </DialogHeader>
-          <Form onSubmit={handleSubmit}>
-            {dialogType === "add" ? (
-              <Input
-                name="entityName"
-                value={entityInput}
-                onChange={(e) => setEntityInput(e.target.value)}
-                placeholder={`Enter ${activeTab} name`}
-              />
-            ) : (
-              <p>Are you sure you want to delete {selectedEntity?.name}?</p>
+          <Form method="post" onSubmit={handleSuccess}>
+            <Input
+              name="entityName"
+              value={entityInput}
+              onChange={(e) => setEntityInput(e.target.value)}
+              placeholder={`Enter ${activeTab} name`}
+              required
+            />
+            <input type="hidden" name="entityType" value={activeTab} />
+            {selectedEntity && (
+              <input type="hidden" name="entityId" value={selectedEntity.id} />
             )}
+            <input
+              type="hidden"
+              name="isAddingNew"
+              value={selectedEntity ? "false" : "true"}
+            />
+
             <div className="flex justify-end mt-4 space-x-2">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant={dialogType === "add" ? "default" : "destructive"}
-              >
-                {dialogType === "add" ? "Add" : "Delete"}
+              <Button type="submit">
+                {selectedEntity ? "Save Changes" : "Add"}
               </Button>
             </div>
           </Form>
         </DialogContent>
       </Dialog>
+
+      {selectedEntity && (
+        <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+          <DialogContent>
+            <div className="p-4">
+              <h2 className="text-lg font-bold">
+                Confirm Deletion of {selectedEntity.name}
+              </h2>
+              <p>Are you sure you want to delete this entity?</p>
+              <div className="flex justify-end mt-4 space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Form method="post" onSubmit={handleSuccess}>
+                  <input
+                    type="hidden"
+                    name="deleteEntityId"
+                    value={selectedEntity.id}
+                  />
+                  <input type="hidden" name="entityType" value={activeTab} />
+                  <Button type="submit" variant="destructive">
+                    Delete
+                  </Button>
+                </Form>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

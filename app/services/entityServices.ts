@@ -44,6 +44,21 @@ export async function addEntity(type: string, name: string) {
   }
 }
 
+export async function updateEntity(type: string, id: number, name: string) {
+  switch (type) {
+    case "insurance":
+      return prisma.insurance.update({ where: { id }, data: { name } });
+    case "location":
+      return prisma.location.update({ where: { id }, data: { name } });
+    case "condition":
+      return prisma.condition.update({ where: { id }, data: { name } });
+    case "medication":
+      return prisma.medication.update({ where: { id }, data: { name } });
+    default:
+      throw new Error(`Unknown entity type: ${type}`);
+  }
+}
+
 export async function deleteEntity(type: string, id: number) {
   switch (type) {
     case "insurance":

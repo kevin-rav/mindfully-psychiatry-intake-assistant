@@ -1,34 +1,25 @@
 import { redirect, json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData, Form } from "@remix-run/react";
 import ManagePsychiatrists from "~/components/custom/ManagePsychiatrists";
+import ManageEntities from "~/components/custom/ManageEntities";
 import { getSession } from "~/utils/sessions";
-import { Psychiatrist, Entity } from "~/types";
-import { LoaderFunction, ActionFunction } from "@remix-run/node";
+import {
+  addEntity,
+  deleteEntity,
+  updateEntity,
+  getAllEntities,
+} from "~/services/entityServices";
 import {
   updatePsychiatrist,
   createPsychiatrist,
   deletePsychiatrist,
   getAllPsychiatrists,
 } from "~/services/psychiatristServices";
-import {
-  addEntity,
-  deleteEntity,
-  getAllEntities,
-} from "~/services/entityServices";
-import ManageEntities from "~/components/custom/ManageEntities";
+import { Psychiatrist, Entity } from "~/types";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 
-type LoaderData = {
-  psychiatrists: Psychiatrist[];
-  allInsurances: Entity[];
-  allLocations: Entity[];
-  allAgeGroups: Entity[];
-  allConditions: Entity[];
-  allMedications: Entity[];
-};
-
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
   const isAuthenticated = session.get("adminAuthenticated");
 
@@ -41,62 +32,24 @@ export const loader: LoaderFunction = async ({ request }) => {
     getAllEntities(),
   ]);
 
-  return json({
-    psychiatrists,
-    ...entities,
-  });
+  return json({ psychiatrists, ...entities });
 };
 
-async function processEntityAction(formData: FormData) {
-  const name = formData.get("newEntityName") as string;
-  const type = formData.get("entityType") as string;
-
-  if (!name || !type) {
-    throw new Error("Invalid entity data.");
-  }
-
-  await addEntity(type, name);
-}
-
-async function processEntityDeletion(formData: FormData) {
-  const id = Number(formData.get("deleteEntityId"));
-  const type = formData.get("entityType") as string;
-
-  if (!id || !type) {
-    throw new Error("Invalid entity data.");
-  }
-
-  await deleteEntity(type, id);
-}
-
-async function processPsychiatristDeletion(formData: FormData) {
-  const psychiatristId = Number(formData.get("deletePsychiatristId"));
-
-  if (!psychiatristId) {
-    throw new Error("Invalid psychiatrist ID.");
-  }
-
-  await deletePsychiatrist(psychiatristId);
-}
-
-async function processPsychiatristUpsert(
-  formData: FormData,
-  isAddingNew: boolean
-) {
+async function processPsychiatristUpsert(formData, isAddingNew) {
   const data = {
-    firstName: formData.get("firstName") as string,
-    lastName: formData.get("lastName") as string,
-    credentials: formData.get("credentials") as string,
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    credentials: formData.get("credentials"),
     numPatientsAccepted: Number(formData.get("numPatientsAccepted")),
     requiresInPersonFirstMeeting: formData.has("requiresInPersonFirstMeeting"),
     initialApptLength: Number(formData.get("initialApptLength")),
     followUpApptLength: Number(formData.get("followUpApptLength")),
-    notes: formData.get("notes") as string,
-    insurances: JSON.parse(formData.get("insurances") as string),
-    locations: JSON.parse(formData.get("locations") as string),
-    ageGroups: JSON.parse(formData.get("ageGroups") as string),
-    conditions: JSON.parse(formData.get("conditions") as string),
-    medications: JSON.parse(formData.get("medications") as string),
+    notes: formData.get("notes"),
+    insurances: JSON.parse(formData.get("insurances")),
+    locations: JSON.parse(formData.get("locations")),
+    ageGroups: JSON.parse(formData.get("ageGroups")),
+    conditions: JSON.parse(formData.get("conditions")),
+    medications: JSON.parse(formData.get("medications")),
   };
 
   if (isAddingNew) {
@@ -110,18 +63,63 @@ async function processPsychiatristUpsert(
   }
 }
 
-export const action: ActionFunction = async ({ request }) => {
+async function processPsychiatristDeletion(formData) {
+  const psychiatristId = Number(formData.get("deletePsychiatristId"));
+  if (!psychiatristId) {
+    throw new Error("Invalid psychiatrist ID.");
+  }
+  await deletePsychiatrist(psychiatristId);
+}
+
+async function processEntityUpsert(formData, isAddingNew) {
+  const name = formData.get("entityName");
+  const type = formData.get("entityType");
+
+  if (!name || !type) {
+    throw new Error("Invalid entity data.");
+  }
+
+  if (isAddingNew) {
+    const newEntity = await addEntity(type, name);
+    return newEntity;
+  } else {
+    const entityId = Number(formData.get("entityId"));
+    if (!entityId) {
+      throw new Error("Invalid entity ID.");
+    }
+    const updatedEntity = await updateEntity(type, entityId, name);
+    return updatedEntity;
+  }
+}
+
+async function processEntityDeletion(formData) {
+  const id = Number(formData.get("deleteEntityId"));
+  const type = formData.get("entityType");
+
+  if (!id || !type) {
+    throw new Error("Invalid entity data.");
+  }
+
+  await deleteEntity(type, id);
+}
+
+export const action = async ({ request }) => {
   const formData = await request.formData();
 
   try {
-    if (formData.has("newEntityName") && formData.has("entityType")) {
-      await processEntityAction(formData);
-      return json({ success: true, message: "Entity added successfully." });
-    }
-
-    if (formData.has("deleteEntityId") && formData.has("entityType")) {
-      await processEntityDeletion(formData);
-      return json({ success: true, message: "Entity deleted successfully." });
+    if (
+      formData.has("firstName") ||
+      formData.has("lastName") ||
+      formData.has("psychiatristId")
+    ) {
+      const isAddingNew = formData.get("isAddingNew") === "true";
+      await processPsychiatristUpsert(formData, isAddingNew);
+      return json({
+        success: true,
+        message: isAddingNew
+          ? "Psychiatrist created successfully."
+          : "Psychiatrist updated successfully.",
+      });
     }
 
     if (formData.has("deletePsychiatristId")) {
@@ -132,25 +130,26 @@ export const action: ActionFunction = async ({ request }) => {
       });
     }
 
-    const isAddingNew = formData.get("isAddingNew") === "true";
-    if (
-      formData.has("firstName") ||
-      formData.has("lastName") ||
-      formData.has("psychiatristId")
-    ) {
-      await processPsychiatristUpsert(formData, isAddingNew);
+    if (formData.has("entityName") && formData.has("entityType")) {
+      const isAddingNew = formData.get("isAddingNew") === "true";
+      const entity = await processEntityUpsert(formData, isAddingNew);
       return json({
         success: true,
         message: isAddingNew
-          ? "Psychiatrist created successfully."
-          : "Psychiatrist updated successfully.",
+          ? "Entity added successfully."
+          : "Entity updated successfully.",
+        entity,
       });
+    }
+
+    if (formData.has("deleteEntityId") && formData.has("entityType")) {
+      await processEntityDeletion(formData);
+      return json({ success: true, message: "Entity deleted successfully." });
     }
 
     throw new Error("Invalid action.");
   } catch (error) {
     console.error("Error processing action:", error);
-
     return json(
       {
         success: false,
@@ -169,11 +168,7 @@ export default function AdminLayout() {
     allAgeGroups,
     allConditions,
     allMedications,
-  } = useLoaderData<LoaderData>();
-
-  const onPsychiatristUpdated = () => {
-    console.log("Psychiatrist updated!");
-  };
+  } = useLoaderData();
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -183,6 +178,7 @@ export default function AdminLayout() {
           <Button variant="outline">Home</Button>
         </Link>
       </div>
+
       <div className="flex flex-col lg:flex-row gap-6">
         <Card className="flex-1">
           <CardContent>
@@ -193,7 +189,6 @@ export default function AdminLayout() {
               allAgeGroups={allAgeGroups}
               allConditions={allConditions}
               allMedications={allMedications}
-              onPsychiatristUpdated={onPsychiatristUpdated}
             />
           </CardContent>
         </Card>
