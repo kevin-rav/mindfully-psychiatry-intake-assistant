@@ -68,6 +68,7 @@ export default function FilterForm({
 
         <MultiSelect
           label="Medication Restrictions"
+          name="medicationIds"
           options={medications}
           selectedValues={medicationIds}
           onChange={setMedicationIds}
@@ -75,6 +76,7 @@ export default function FilterForm({
 
         <MultiSelect
           label="Condition Restrictions"
+          name="conditionIds"
           options={conditions}
           selectedValues={conditionIds}
           onChange={setConditionIds}

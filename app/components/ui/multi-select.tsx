@@ -9,6 +9,7 @@ type MultiSelectProps = {
   onChange: (values: number[]) => void;
   placeholder?: string;
   label?: string;
+  name: string;
 };
 
 export const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -17,6 +18,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   onChange,
   placeholder = "Select options...",
   label,
+  name,
 }) => {
   const handleSelect = (id: number) => {
     if (selectedValues.includes(id)) {
@@ -27,7 +29,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   };
 
   const clearAll = () => {
-    onChange([]); // Clear all selected options
+    onChange([]);
   };
 
   return (
@@ -37,6 +39,11 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
           {label}
         </label>
       )}
+
+      {selectedValues.map((value) => (
+        <input key={value} type="hidden" name={name} value={value} />
+      ))}
+
       <Popover.Root>
         <Popover.Trigger
           className={cn(
@@ -56,7 +63,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               <button
                 type="button"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent opening the dropdown
+                  e.stopPropagation();
                   clearAll();
                 }}
                 className="text-muted-foreground hover:text-red-500"
